@@ -1,0 +1,188 @@
+<!-- templates/thread.html -->
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="w-full max-w-md mb-6 flex justify-center mt-4">
+    <a href="/board" class="text-xs tracking-widest text-neutral-500 hover:text-white transition-colors border border-transparent hover:border-neutral-700 px-3 py-1 uppercase">&lt; Return to Board</a>
+</div>
+
+<div class="border border-green-900/50 bg-black w-full max-w-md mb-8 shadow-2xl shadow-green-900/10 flex flex-col">
+    <div class="border-b border-green-900/50 p-3 bg-green-900/10 flex flex-col gap-2 text-[10px] text-green-700 tracking-widest">
+        <div class="flex justify-between items-start gap-2">
+            <div class="flex items-center flex-wrap gap-2">
+                <span class="text-green-500 font-bold break-words">AGENT {{ thread.author_id }}</span>
+                {% if (op_role & 4) != 0 %}
+                    <span class="text-green-500 font-bold bg-green-900/20 px-1 border border-green-900/50 shrink-0">[ADMIN]</span>
+                {% else if (op_role & 2) != 0 %}
+                    <span class="text-blue-400 font-bold px-1 border shrink-0" style="background-color: rgba(30, 58, 138, 0.2); border-color: rgba(30, 58, 138, 0.5);">[SUB]</span>
+                {% endif %}
+            </div>
+            <span class="text-green-500 font-bold shrink-0">ID: {{ thread.id }}</span>
+        </div>
+
+        {% if thread.giveaway_active || poll.is_some() || is_solved || is_locked || is_pinned %}
+        <div class="flex flex-wrap gap-2 pt-2 mt-1 border-t border-green-900/30">
+            {% if thread.giveaway_active %}
+                <span class="text-green-500 font-bold bg-green-900/10 px-1 border border-green-900/50 shrink-0">[GIVEAWAY]</span>
+            {% endif %}
+            {% if poll.is_some() %}
+                <span class="text-cyan-400 font-bold bg-cyan-900/10 px-1 border border-cyan-900/50 shrink-0">[POLL]</span>
+            {% endif %}
+            {% if is_solved %}
+                <span class="text-blue-400 font-bold bg-blue-900/10 px-1 border border-blue-900/50 shrink-0">[SOLVED]</span>
+            {% endif %}
+            {% if is_locked %}
+                <span class="text-red-500 font-bold bg-red-900/10 px-1 border border-red-900/50 shrink-0">[LOCKED]</span>
+            {% endif %}
+            {% if is_pinned %}
+                <span class="text-yellow-500 font-bold bg-yellow-900/10 px-1 border border-yellow-900/50 shrink-0">[PINNED]</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="flex justify-between items-center text-green-500 font-bold border-t border-green-900/30 pt-2 mt-1">
+            <div class="flex items-center gap-4">
+                <span>REPLIES: {{ thread.replies_count }}/300</span>
+                <span>VIEWS: {{ thread.views_count }}</span>
+                <span class="uppercase">PLUS: {{ thread.plus_count }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-4 text-xs sm:text-sm text-white whitespace-pre-wrap break-words font-mono leading-relaxed">{{ thread.content }}</div>
+
+    {% if let Some(poll_data) = poll %}
+    <div class="border-t border-green-900/30 p-4 bg-neutral-900/20">
+        <h4 class="text-[10px] font-bold text-green-500 tracking-widest mb-4 flex justify-between items-center uppercase">
+            <span>SECURE POLL</span>
+            {% if poll_data.user_voted %}
+                <span class="text-green-500 border border-green-900/50 bg-green-900/10 px-3 py-1">[VOTE CAST]</span>
+            {% endif %}
+        </h4>
+
+        {% if poll_data.user_voted %}
+            <div class="flex flex-col gap-3">
+                {% for opt in poll_data.options %}
+                    <div class="border {% if opt.is_users_choice %}border-green-900/50{% else %}border-neutral-800{% endif %} bg-black flex items-center transition-all duration-300" style="position: relative; overflow: hidden; min-height: 2.5rem;">
+                        <div class="{% if opt.is_users_choice %}bg-green-900/10 border-green-900/50{% else %}bg-neutral-900/50 border-neutral-800{% endif %} transition-all duration-300" style="position: absolute; top: 0; left: 0; height: 100%; width: {{ opt.percentage }}%; z-index: 0; border-right-width: 1px; border-right-style: solid;"></div>
+                        <div class="flex justify-between items-center w-full px-3 py-2 text-[10px] font-mono tracking-widest gap-4" style="position: relative; z-index: 10;">
+                            <span class="{% if opt.is_users_choice %}text-green-500 font-bold{% else %}text-white{% endif %} break-words flex-grow">{{ opt.text }}</span>
+                            <span class="{% if opt.is_users_choice %}text-green-500 font-bold{% else %}text-neutral-500{% endif %} shrink-0">{{ opt.percentage }}% ({{ opt.votes }})</span>
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="text-[10px] text-green-500 tracking-widest uppercase mt-3 text-right font-bold">TOTAL VOTES: {{ poll_data.total_votes }}</div>
+            </div>
+        {% else %}
+            <form action="/board/{{ thread.id }}/vote" method="POST" class="flex flex-col gap-3">
+                {% for opt in poll_data.options %}
+                    <label class="flex justify-between p-3 border border-neutral-800 bg-black cursor-pointer hover:border-green-500 transition-colors" style="position: relative; overflow: hidden; min-height: 2.5rem; align-items: flex-start;">
+                        <div class="flex gap-3 w-full" style="align-items: flex-start;">
+                            <input type="radio" name="option_index" value="{{ opt.index }}" required class="shrink-0 mt-1" style="accent-color: #22c55e;">
+                            <span class="text-xs text-gray-200 font-mono tracking-widest break-words flex-grow">{{ opt.text }}</span>
+                        </div>
+                    </label>
+                {% endfor %}
+                <button type="submit" class="w-full mt-2 px-6 py-3 border border-green-900/50 text-green-500 bg-green-900/10 hover:border-green-500 text-xs tracking-widest transition-all font-bold uppercase">SUBMIT VOTE</button>
+            </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if thread.giveaway_active %}
+    <div class="border-t border-green-900/30 p-4 bg-neutral-900/20">
+        <h4 class="text-[10px] font-bold text-green-500 tracking-widest mb-4 flex justify-between items-center uppercase">
+            <span>SECURE GIVEAWAY</span>
+            {% if user_participating %}
+                <span class="text-green-500 border border-green-900/50 bg-green-900/10 px-3 py-1">[PARTICIPATING]</span>
+            {% endif %}
+        </h4>
+
+        {% if thread.giveaway_winners.is_empty() %}
+            <p class="text-xs text-green-500 font-mono tracking-widest mb-4 uppercase">
+                WINNERS TO BE DETERMINED: {{ thread.giveaway_winners_count }}<br>
+                PARTICIPANTS: {{ thread.giveaway_current_participants }} / {{ thread.giveaway_target_participants }}
+            </p>
+            {% if !user_participating %}
+                <form action="/board/{{ thread.id }}/giveaway" method="POST">
+                    <button type="submit" class="w-full px-6 py-3 border border-green-900/50 text-green-500 bg-green-900/10 hover:border-green-500 hover:bg-green-900/20 text-xs tracking-widest transition-all font-bold uppercase">PARTICIPATE</button>
+                </form>
+            {% endif %}
+        {% else %}
+            <p class="text-xs text-green-500 font-mono tracking-widest mb-4 uppercase">
+                GIVEAWAY CONCLUDED. WINNERS:
+            </p>
+            <div class="flex flex-col gap-2 font-mono text-xs">
+                {% for w_id in thread.giveaway_winners %}
+                    <div class="px-4 py-2 border border-green-900/50 bg-green-900/10 text-green-500 font-bold tracking-widest uppercase">
+                        AGENT {{ w_id }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="border-t border-green-900/30 p-3 bg-black flex justify-between items-center text-[10px] tracking-widest">
+        <span class="text-green-700 uppercase">END OF TRANSMISSION</span>
+        <form action="/board/{{ thread.id }}/plus" method="POST" class="m-0 flex items-center">
+            <input type="hidden" name="source" value="thread">
+            <button type="submit" class="bg-transparent border-none p-0 m-0 font-mono cursor-pointer transition-colors {% if user_has_plus %}text-white font-bold{% else %}text-green-500 hover:text-white{% endif %}" style="outline: none;">
+                [+] {{ thread.plus_count }}
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="w-full max-w-md flex flex-col gap-4 mb-12">
+    {% if posts.is_empty() %}
+        <p class="text-neutral-600 text-xs tracking-widest text-center py-8 border border-neutral-800 border-dashed">NO REPLIES YET.</p>
+    {% else %}
+        {% for pv in posts %}
+            <div class="border border-neutral-800 bg-neutral-900/30 {% if pv.is_best %}border-l-yellow-500{% else if pv.post.author_id == thread.author_id %}border-l-green-900/50{% else %}border-l-neutral-600{% endif %} ml-4 border-l-2">
+                <div class="border-b border-neutral-800/50 p-2 bg-neutral-900/50 flex flex-col gap-1 text-[10px] text-neutral-500 tracking-widest">
+                    <div class="flex justify-between items-center flex-wrap gap-1">
+                        <div class="flex items-center flex-wrap gap-2 gap-y-1">
+                            <span class="{% if pv.post.author_id == thread.author_id %}text-green-500{% else %}text-neutral-400{% endif %} font-bold break-words">AGENT {{ pv.post.author_id }}</span>
+                            {% if pv.post.author_id == thread.author_id %}<span class="text-green-700 font-bold shrink-0">[OP]</span>{% endif %}
+
+                            {% if (pv.author_role & 4) != 0 %}
+                                <span class="text-green-500 font-bold shrink-0">[ADMIN]</span>
+                            {% else if (pv.author_role & 2) != 0 %}
+                                <span class="text-blue-400 font-bold px-1 border shrink-0" style="background-color: rgba(30, 58, 138, 0.2); border-color: rgba(30, 58, 138, 0.5);">[SUB]</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            {% if pv.is_best %}
+                                <span class="text-yellow-500 font-bold bg-yellow-900/10 px-1 border border-yellow-900/50 shrink-0">[BEST ANSWER]</span>
+                            {% endif %}
+                            <span>ID: {{ pv.post.id }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3 text-xs sm:text-sm text-gray-300 whitespace-pre-wrap break-words font-mono leading-relaxed">{{ pv.post.content }}</div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div class="border border-neutral-800 p-4 w-full max-w-md bg-black/90 backdrop-blur-md sticky bottom-4 z-10 shadow-2xl shadow-black">
+    {% if is_locked %}
+        <div class="border border-red-900/50 bg-red-900/10 p-4 text-center">
+            <span class="text-red-500 font-bold tracking-widest text-xs uppercase">[ DIRECTIVE: THREAD LOCKED BY OVERSEER ]</span>
+        </div>
+    {% else %}
+        <form action="/board/{{ thread.id }}" method="POST" class="flex flex-col gap-3">
+            <textarea name="content" rows="3" placeholder="TRANSMIT REPLY..." required class="bg-black border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-neutral-500 transition-colors font-mono custom-scrollbar resize-y"></textarea>
+            <div class="flex flex-col gap-2">
+                {% if thread.replies_count >= 300 %}
+                    <button type="button" disabled class="w-full px-6 py-3 border border-red-900/50 text-red-500 bg-red-900/10 text-xs tracking-widest font-bold uppercase cursor-not-allowed">BUMP LIMIT REACHED</button>
+                {% else %}
+                    <button type="submit" class="w-full px-6 py-3 border border-neutral-700 hover:border-white hover:bg-white hover:text-black text-xs tracking-widest transition-all font-bold text-black uppercase">Submit Reply</button>
+                {% endif %}
+                <span class="text-[10px] text-neutral-600 tracking-widest uppercase text-center mt-1">Rate Limit: 1 Reply / 30 Sec</span>
+            </div>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

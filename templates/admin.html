@@ -1,0 +1,150 @@
+<!-- templates/admin.html -->
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="border border-neutral-800 p-8 w-full max-w-md bg-neutral-900/50 flex flex-col">
+    <h2 class="text-2xl font-bold mb-8 tracking-widest text-white text-center uppercase">OVERSEER DASHBOARD</h2>
+
+    <div class="flex gap-2 mb-6 w-full">
+        <div class="flex-1 border border-neutral-800 bg-black p-3 text-center">
+            <p class="text-[10px] text-neutral-600 mb-1 tracking-widest uppercase">AGENTS</p>
+            <p class="text-base font-bold text-white">{{ users_count }}</p>
+        </div>
+        <div class="flex-1 border border-neutral-800 bg-black p-3 text-center">
+            <p class="text-[10px] text-neutral-600 mb-1 tracking-widest uppercase">INVITES</p>
+            <p class="text-base font-bold text-white">{{ invites_count }}</p>
+        </div>
+        <div class="flex-1 border border-neutral-800 bg-black p-3 text-center">
+            <p class="text-[10px] text-neutral-600 mb-1 tracking-widest uppercase">EXILED</p>
+            <p class="text-base font-bold text-red-500">{{ banned_count }}</p>
+        </div>
+    </div>
+
+    <div class="mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-3 tracking-widest uppercase">GLOBAL SEARCH</h3>
+        <form action="/admin/search" method="POST" class="flex flex-col gap-2">
+            <input type="text" name="query" placeholder="ID OR LOGIN" required class="w-full bg-black border border-neutral-800 p-3 text-sm text-white focus:outline-none focus:border-neutral-600 transition-colors uppercase font-mono">
+            <div class="flex gap-2">
+                <button type="submit" class="w-full px-6 py-3 border border-white bg-white text-black hover:bg-neutral-200 hover:border-neutral-200 text-xs tracking-widest transition-colors font-bold uppercase">LOCATE</button>
+                <a href="/admin/audit" class="w-full px-6 py-3 border border-neutral-800 hover:border-neutral-600 text-xs tracking-widest transition-colors font-bold text-white uppercase text-center flex items-center justify-center">AUDIT LOGS</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-3 tracking-widest flex justify-between items-center uppercase">
+            <span>GLOBAL CLEARANCES</span>
+            <span class="text-neutral-600">[{{ invites_count }} TOTAL]</span>
+        </h3>
+        <div class="flex flex-col gap-3 font-mono text-xs max-h-48 overflow-y-auto pr-2 custom-scrollbar w-full">
+            {% if active_invites.is_empty() %}
+                <p class="text-neutral-500 text-xs text-center py-3 border border-neutral-800 border-dashed tracking-widest uppercase shrink-0 w-full">NO ACTIVE CLEARANCES</p>
+            {% else %}
+                {% for inv in active_invites %}
+                    <div class="px-4 py-3 border border-neutral-800 bg-black flex justify-between items-center shrink-0 w-full">
+                        <span class="text-green-500 font-bold tracking-widest uppercase break-all">{{ inv.code }}</span>
+                        <span class="text-neutral-500 text-[10px] tracking-widest uppercase truncate ml-2">OP: {{ inv.owner }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="flex justify-between items-center mt-3 pt-3 border-t border-neutral-800/50">
+            {% if has_prev_invites %}
+                <a href="/admin?page={{ invites_page - 1 }}" class="text-[10px] text-neutral-400 hover:text-white uppercase font-bold tracking-widest">&lt; PREV</a>
+            {% else %}
+                <div></div>
+            {% endif %}
+            <span class="text-neutral-600 text-[10px] tracking-widest font-mono">PAGE {{ invites_page + 1 }}</span>
+            {% if has_next_invites %}
+                <a href="/admin?page={{ invites_page + 1 }}" class="text-[10px] text-neutral-400 hover:text-white uppercase font-bold tracking-widest">NEXT &gt;</a>
+            {% else %}
+                <div></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-3 tracking-widest uppercase">INVITE CONTROLS</h3>
+        <div class="flex flex-col gap-2">
+            <form action="/admin/invite" method="POST">
+                <button type="submit" class="w-full px-6 py-3 border border-white bg-white text-black hover:bg-neutral-200 hover:border-neutral-200 text-xs tracking-widest transition-colors font-bold uppercase">ISSUE ROOT CLEARANCE (SELF)</button>
+            </form>
+            <form action="/admin/invites/grant_all" method="POST">
+                <button type="submit" class="w-full py-3 border border-neutral-800 hover:border-green-500 text-xs tracking-widest transition-colors font-bold text-green-500 bg-green-900/10 uppercase">GIVE 1 TO ALL</button>
+            </form>
+            <form action="/admin/invites/revoke_one_all" method="POST">
+                <button type="submit" class="w-full py-3 border border-neutral-800 hover:border-yellow-500 text-xs tracking-widest transition-colors font-bold text-yellow-500 bg-yellow-900/10 uppercase">TAKE 1 FROM ALL</button>
+            </form>
+            <form action="/admin/invites/revoke_all" method="POST">
+                <button type="submit" class="w-full py-3 border border-neutral-800 hover:border-red-500 text-xs tracking-widest transition-colors font-bold text-red-500 bg-red-900/10 uppercase">PURGE ALL INVITES</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-3 tracking-widest uppercase">BOARD MODERATION</h3>
+        <div class="flex flex-col gap-4">
+
+            <div class="border border-neutral-800 p-3 bg-black">
+                <p class="text-[10px] text-neutral-500 mb-2 tracking-widest uppercase font-bold">PIN / UNPIN THREAD</p>
+                <form method="POST" class="flex flex-col gap-2">
+                    <input type="text" name="target_id" placeholder="THREAD ID" required class="w-full bg-black border border-neutral-800 p-2 text-xs text-white focus:outline-none focus:border-neutral-600 transition-colors uppercase font-mono">
+                    <div class="flex gap-2">
+                        <button type="submit" formaction="/admin/thread/pin" class="flex-1 py-2 border border-neutral-800 hover:border-yellow-500 text-[10px] tracking-widest transition-colors font-bold text-yellow-500 bg-yellow-900/10 uppercase">PIN</button>
+                        <button type="submit" formaction="/admin/thread/unpin" class="flex-1 py-2 border border-neutral-800 hover:border-neutral-500 text-[10px] tracking-widest transition-colors font-bold text-neutral-400 bg-black uppercase">UNPIN</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border border-neutral-800 p-3 bg-black">
+                <p class="text-[10px] text-neutral-500 mb-2 tracking-widest uppercase font-bold">LOCK / UNLOCK THREAD</p>
+                <form method="POST" class="flex flex-col gap-2">
+                    <input type="text" name="target_id" placeholder="THREAD ID" required class="w-full bg-black border border-neutral-800 p-2 text-xs text-white focus:outline-none focus:border-neutral-600 transition-colors uppercase font-mono">
+                    <div class="flex gap-2">
+                        <button type="submit" formaction="/admin/thread/lock" class="flex-1 py-2 border border-neutral-800 hover:border-red-500 text-[10px] tracking-widest transition-colors font-bold text-red-500 bg-red-900/10 uppercase">LOCK</button>
+                        <button type="submit" formaction="/admin/thread/unlock" class="flex-1 py-2 border border-neutral-800 hover:border-neutral-500 text-[10px] tracking-widest transition-colors font-bold text-neutral-400 bg-black uppercase">UNLOCK</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border border-neutral-800 p-3 bg-black">
+                <p class="text-[10px] text-neutral-500 mb-2 tracking-widest uppercase font-bold">MARK / UNMARK SOLVED</p>
+                <form method="POST" class="flex flex-col gap-2">
+                    <input type="text" name="target_id" placeholder="THREAD ID" required class="w-full bg-black border border-neutral-800 p-2 text-xs text-white focus:outline-none focus:border-neutral-600 transition-colors uppercase font-mono">
+                    <div class="flex gap-2">
+                        <button type="submit" formaction="/admin/thread/solve" class="flex-1 py-2 border border-neutral-800 hover:border-blue-400 text-[10px] tracking-widest transition-colors font-bold text-blue-400 bg-blue-900/10 uppercase">SOLVED</button>
+                        <button type="submit" formaction="/admin/thread/unsolve" class="flex-1 py-2 border border-neutral-800 hover:border-neutral-500 text-[10px] tracking-widest transition-colors font-bold text-neutral-400 bg-black uppercase">UNSOLVED</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border border-neutral-800 p-3 bg-black">
+                <p class="text-[10px] text-neutral-500 mb-2 tracking-widest uppercase font-bold">BEST ANSWER (POST)</p>
+                <form method="POST" class="flex flex-col gap-2">
+                    <input type="text" name="target_id" placeholder="POST ID" required class="w-full bg-black border border-neutral-800 p-2 text-xs text-white focus:outline-none focus:border-neutral-600 transition-colors uppercase font-mono">
+                    <div class="flex gap-2">
+                        <button type="submit" formaction="/admin/post/best" class="flex-1 py-2 border border-neutral-800 hover:border-yellow-500 text-[10px] tracking-widest transition-colors font-bold text-yellow-500 bg-yellow-900/10 uppercase">MARK BEST</button>
+                        <button type="submit" formaction="/admin/post/unbest" class="flex-1 py-2 border border-neutral-800 hover:border-neutral-500 text-[10px] tracking-widest transition-colors font-bold text-neutral-400 bg-black uppercase">UNMARK BEST</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border border-red-900/50 p-3 bg-red-900/10">
+                <p class="text-[10px] text-red-500 mb-2 tracking-widest uppercase font-bold">PURGE (DESTRUCTIVE)</p>
+                <form method="POST" class="flex flex-col gap-2">
+                    <input type="text" name="target_id" placeholder="TARGET ID" required class="w-full bg-black border border-red-900/50 p-2 text-xs text-white focus:outline-none focus:border-red-500 transition-colors uppercase font-mono">
+                    <div class="flex gap-2">
+                        <button type="submit" formaction="/admin/thread/delete" class="flex-1 py-2 border border-red-900/50 hover:border-red-500 text-[10px] tracking-widest transition-colors font-bold text-red-500 bg-black uppercase">PURGE THREAD</button>
+                        <button type="submit" formaction="/admin/post/delete" class="flex-1 py-2 border border-red-900/50 hover:border-red-500 text-[10px] tracking-widest transition-colors font-bold text-red-500 bg-black uppercase">PURGE POST</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-4 w-full">
+        <a href="/profile" class="w-full text-center px-6 py-3 border border-neutral-700 hover:border-neutral-500 text-xs tracking-widest transition-colors font-bold uppercase text-neutral-300 hover:text-white">RETURN TO PROFILE</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+<!-- templates/layout.html -->
+<!DOCTYPE html>
+<html lang="en" class="bg-black text-gray-200">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENSEAIM</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body class="min-h-screen font-mono flex flex-col relative z-0">
+    <div class="fixed top-1/2 left-1/2 transform-center w-[70vw] h-[40vh] max-w-[1200px] rounded-full bg-green-900/20 blur-[120px] pointer-events-none -z-10"></div>
+    <div id="global-impulse" class="fixed top-0 left-0 h-[2px] w-full z-50 transition-colors duration-300 bg-transparent"></div>
+    <main class="flex-grow flex items-center justify-center flex-col my-8 px-4 relative z-10">
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+        const impulse = document.getElementById("global-impulse");
+        window.triggerImpulse = function(success) {
+            impulse.classList.remove("bg-transparent", "bg-green-500", "bg-red-500");
+            impulse.classList.add(success ? "bg-green-500" : "bg-red-500");
+            setTimeout(() => {
+                impulse.classList.remove("bg-green-500", "bg-red-500");
+                impulse.classList.add("bg-transparent");
+            }, 1000);
+        };
+
+        document.addEventListener("submit", async (e) => {
+            if (e.target.tagName === "FORM") {
+                e.preventDefault();
+                const form = e.target;
+                const submitter = e.submitter;
+
+                const actionUrl = (submitter && submitter.hasAttribute("formaction"))
+                    ? submitter.getAttribute("formaction")
+                    : form.action;
+
+                const formData = new URLSearchParams(new FormData(form));
+                try {
+                    const res = await fetch(actionUrl, {
+                        method: form.method,
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    });
+                    if (res.ok) {
+                        window.triggerImpulse(true);
+                        if (res.redirected) {
+                            window.location.href = res.url;
+                        } else {
+                            document.open();
+                            document.write(await res.text());
+                            document.close();
+                        }
+                    } else {
+                        window.triggerImpulse(false);
+                        alert(await res.text());
+                    }
+                } catch (err) {
+                    window.triggerImpulse(false);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!-- templates/index.html -->
+{% extends "layout.html" %}
+
+{% block content %}
+<header class="mb-12 text-center">
+    <h1 class="text-4xl font-bold tracking-[0.3em] text-white">SENSEAIM</h1>
+    <p class="text-xs text-gray-600 mt-2 tracking-widest">DIGITAL BASTION</p>
+</header>
+
+<div class="border border-neutral-800 p-8 text-center max-w-md w-full bg-neutral-900/50">
+    <p class="text-neutral-400 mb-8 uppercase text-sm tracking-widest">You do not have permission to view this content</p>
+    <div class="flex gap-4 justify-center">
+        <a href="/login" class="px-6 py-2 border border-neutral-700 hover:border-neutral-500 text-sm tracking-widest transition-colors">LOGIN</a>
+        <a href="/register" class="px-6 py-2 border border-neutral-700 hover:border-neutral-500 text-sm tracking-widest transition-colors">REGISTER</a>
+    </div>
+</div>
+
+<footer class="mt-12 text-xs text-neutral-600 tracking-widest">
+    ZERO TRUST ARCHITECTURE
+</footer>
+{% endblock %}

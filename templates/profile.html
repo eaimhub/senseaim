@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="border border-neutral-800 p-8 w-full max-w-md bg-neutral-900/50 flex flex-col">
+    <h2 class="text-2xl font-bold mb-8 tracking-widest text-white text-center uppercase">OPERATIVE PROFILE</h2>
+
+    <div class="mb-6 border border-green-900/50 bg-green-900/10 p-3 text-center w-full">
+        <p class="text-green-500 font-mono text-xs font-bold tracking-widest break-all uppercase">
+            [ CORE INTEGRITY: {{ core_integrity }} | STATUS: VERIFIED ]
+        </p>
+    </div>
+
+    <div class="mb-6 w-full">
+        <p class="text-xs text-neutral-600 mb-1 tracking-widest uppercase">ID</p>
+        <p class="text-lg font-bold text-white tracking-widest">{{ id }}</p>
+    </div>
+
+    <div class="mb-6 w-full">
+        <p class="text-xs text-neutral-600 mb-1 tracking-widest uppercase">TOTAL PLUS</p>
+        <p class="text-lg font-bold text-white tracking-widest">{{ plus_count }}</p>
+    </div>
+
+    <div class="mb-6 w-full">
+        <p class="text-xs text-neutral-600 mb-1 tracking-widest uppercase">LOGIN</p>
+        <p class="text-lg font-bold text-white tracking-widest uppercase">{{ login }}</p>
+    </div>
+
+    <div class="mb-6 w-full">
+        <p class="text-xs text-neutral-600 mb-2 tracking-widest uppercase">CLEARANCE LEVEL (ROLES)</p>
+        <div class="flex flex-wrap gap-2 font-mono text-xs">
+            {% if is_admin %}
+                <span class="px-3 py-1 border border-green-900/50 bg-green-900/10 text-green-500 font-bold tracking-widest uppercase">ADMIN</span>
+            {% endif %}
+            {% if is_subscriber %}
+                <span class="px-3 py-1 border text-blue-400 font-bold tracking-widest uppercase" style="background-color: rgba(30, 58, 138, 0.2); border-color: rgba(30, 58, 138, 0.5);">SUB</span>
+            {% endif %}
+            {% if is_user %}
+                <span class="px-3 py-1 border border-neutral-700 bg-black text-neutral-400 font-bold tracking-widest uppercase">USER</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-8 w-full">
+        <p class="text-xs text-neutral-600 mb-2 tracking-widest uppercase">RECOVERY CODE (CLICK TO REVEAL)</p>
+        <div class="flex items-center">
+            <p class="text-sm font-bold text-neutral-400 tracking-widest transition-all duration-300 select-all" style="filter: blur(5px); cursor: pointer;" onclick="this.style.filter='none'; this.style.color='#ef4444';">{{ recovery_code }}</p>
+        </div>
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-4 tracking-widest flex justify-between items-center uppercase">
+            <span>ACTIVE SESSIONS</span>
+            <span class="text-neutral-600">[{{ sessions.len() }} TOTAL]</span>
+        </h3>
+
+        <div class="flex flex-col gap-3 font-mono text-xs max-h-48 overflow-y-auto pr-2 custom-scrollbar w-full">
+            {% for s in sessions %}
+                <div class="flex justify-between items-center px-4 py-3 border {% if s.is_current %}border-green-900/50 bg-green-900/10{% else %}border-neutral-800 bg-black{% endif %} shrink-0 w-full">
+                    <div class="flex flex-col gap-1">
+                        <span class="{% if s.is_current %}text-green-500 font-bold{% else %}text-white{% endif %} tracking-widest uppercase">SESSION: {{ s.id_preview }}</span>
+                        <span class="text-neutral-500 text-xs tracking-widest uppercase">EXPIRES IN: {{ s.expires_in_hrs }}H</span>
+                    </div>
+                    {% if s.is_current %}
+                        <span class="text-green-500 text-xs tracking-widest font-bold border border-green-900/50 px-2 py-1 uppercase">CURRENT</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if sessions.len() > 1 %}
+        <form action="/profile/sessions/revoke" method="POST" class="mt-4 w-full">
+            <button type="submit" class="w-full px-6 py-3 border border-red-900/50 hover:border-red-500 text-xs tracking-widest transition-colors font-bold text-red-500 bg-red-900/10 uppercase">TERMINATE ALL OTHER SESSIONS</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-4 tracking-widest flex justify-between items-center uppercase">
+            <span>OPERATIVE CONTENT (THREADS & REPLIES)</span>
+            <span class="text-neutral-600">[{{ total_posts }} TOTAL]</span>
+        </h3>
+        <div class="flex flex-col w-full">
+            <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 w-full">
+                {% if !post_ids.is_empty() %}
+                    {% for pid in post_ids %}
+                        <div class="p-2 border border-neutral-800 bg-neutral-900/30 text-center text-[10px] sm:text-xs tracking-[0.2em] text-neutral-400 select-all">ID: {{ pid }}</div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-neutral-500 text-xs text-center py-3 border border-neutral-800 border-dashed tracking-widest uppercase shrink-0 w-full">NO SECURE TRANSMISSIONS LOGGED</p>
+                {% endif %}
+            </div>
+
+            {% if total_posts > 50 %}
+            <div class="flex justify-between items-center mt-3 pt-3 border-t border-neutral-800/50">
+                {% if has_prev_posts %}
+                    <a href="/profile?page={{ post_page - 1 }}" class="text-[10px] text-neutral-400 hover:text-white uppercase font-bold tracking-widest">&lt; PREV</a>
+                {% else %}
+                    <div></div>
+                {% endif %}
+                <span class="text-neutral-600 text-[10px] tracking-widest font-mono">PAGE {{ post_page + 1 }}</span>
+                {% if has_next_posts %}
+                    <a href="/profile?page={{ post_page + 1 }}" class="text-[10px] text-neutral-400 hover:text-white uppercase font-bold tracking-widest">NEXT &gt;</a>
+                {% else %}
+                    <div></div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-6 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-4 tracking-widest flex justify-between items-center uppercase">
+            <span>AUTHORIZED CLEARANCES (GIVE TO RECRUITS)</span>
+            <span class="text-neutral-600">[{{ active_invites.len() }} INVITES]</span>
+        </h3>
+        <div class="flex flex-col gap-3 font-mono text-xs max-h-48 overflow-y-auto pr-2 custom-scrollbar w-full">
+            {% if active_invites.is_empty() %}
+                <p class="text-neutral-500 text-xs text-center py-3 border border-neutral-800 border-dashed tracking-widest uppercase shrink-0 w-full">NO ACTIVE INVITES ASSIGNED</p>
+            {% else %}
+                {% for inv in active_invites %}
+                    <div class="px-4 py-3 border border-green-900/50 bg-green-900/10 text-green-500 font-bold tracking-widest text-center shrink-0 break-all uppercase w-full">
+                        {{ inv }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="border-t border-neutral-800 pt-6 mb-8 w-full">
+        <h3 class="text-xs font-bold text-neutral-400 mb-4 tracking-widest flex justify-between items-center uppercase">
+            <span>OPERATIVE NETWORK (SUBTREE)</span>
+            <span class="text-neutral-600">[{{ tree.len() }} AGENTS]</span>
+        </h3>
+        <div class="flex flex-col gap-2 font-mono text-xs max-h-64 overflow-y-auto pr-2 custom-scrollbar w-full">
+            {% if tree.is_empty() %}
+                <p class="text-neutral-500 text-xs text-center py-3 border border-neutral-800 border-dashed tracking-widest uppercase shrink-0 w-full">NO RECRUITS IN YOUR NETWORK</p>
+            {% else %}
+                {% for node in tree %}
+                    <div class="flex items-center gap-2 py-2 px-3 border border-transparent hover:border-neutral-800 hover:bg-neutral-900/30 transition-colors shrink-0 w-full" style="padding-left: calc({{ node.padding_rem }}rem + 0.75rem);">
+                        {% if node.padding_rem > 0.0 %}
+                            <span class="text-neutral-600">└─</span>
+                        {% else %}
+                            <span class="text-neutral-500 font-bold">●</span>
+                        {% endif %}
+                        <span class="text-white font-bold uppercase tracking-widest">{{ node.login }}</span>
+                        <span class="text-neutral-500 mr-2 tracking-widest">({{ node.id }})</span>
+
+                        {% if node.is_banned %} <span class="text-red-500 font-bold tracking-widest">[EXILED]</span> {% endif %}
+                        {% if node.is_admin %} <span class="text-green-500 font-bold tracking-widest">[ADMIN]</span> {% endif %}
+                        {% if node.is_subscriber %} <span class="text-blue-400 font-bold tracking-widest">[SUB]</span> {% endif %}
+                        {% if node.is_user %} <span class="text-neutral-400 font-bold tracking-widest">[USER]</span> {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-4 w-full">
+        <a href="/board" class="w-full text-center px-6 py-3 border border-neutral-700 hover:border-white hover:bg-white hover:text-black text-xs tracking-widest transition-all font-bold uppercase">SIGNAL BOARD</a>
+        <a href="/reset" class="w-full text-center px-6 py-3 border border-neutral-700 hover:border-neutral-500 text-xs tracking-widest transition-colors font-bold uppercase text-neutral-300 hover:text-white">RESET PASSWORD</a>
+        {% if is_admin %}
+        <a href="/admin" class="w-full text-center px-6 py-3 border border-green-900/50 hover:border-green-500 text-xs tracking-widest transition-colors font-bold uppercase text-green-500 bg-green-900/10">OVERSEER DASHBOARD</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

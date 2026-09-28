@@ -1,0 +1,48 @@
+<!-- templates/admin_audit.html -->
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="w-full max-w-md mb-6 flex justify-center mt-4">
+    <a href="/admin" class="text-xs tracking-widest text-neutral-500 hover:text-white transition-colors border border-transparent hover:border-neutral-700 px-3 py-1 uppercase">&lt; Return to Dashboard</a>
+</div>
+
+<div class="w-full max-w-md flex flex-col gap-6 mb-12">
+    <div class="text-center mb-2">
+        <h2 class="text-2xl font-bold tracking-[0.2em] text-white">SYSTEM AUDIT</h2>
+        <p class="text-[10px] text-neutral-500 tracking-widest mt-2 uppercase">Immutable Overseer Logs</p>
+    </div>
+
+    <div class="flex flex-col gap-4">
+        {% if logs.is_empty() %}
+            <p class="text-neutral-600 text-xs tracking-widest text-center py-12 border border-neutral-800 border-dashed">NO RECORDS FOUND IN LOG</p>
+        {% else %}
+            {% for log in logs %}
+                <div class="border border-neutral-800 bg-black shadow-lg">
+                    <div class="border-b border-neutral-800/50 p-2 bg-neutral-900/50 flex flex-col gap-1 text-[10px] text-neutral-500 tracking-widest">
+                        <div class="flex justify-between items-center flex-wrap gap-1">
+                            <span class="text-neutral-400 font-bold">EVENT TS: {{ log.timestamp }}</span>
+                        </div>
+                    </div>
+                    <div class="p-3 text-xs text-green-500 whitespace-pre-wrap break-words font-mono leading-relaxed uppercase">{{ log.action }}</div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="flex justify-between items-center mt-2 gap-4">
+        {% if has_prev %}
+            <a href="/admin/audit?page={{ page - 1 }}" class="flex-1 text-center py-3 border border-neutral-700 hover:border-white hover:bg-white hover:text-black text-xs tracking-widest transition-all font-bold text-white uppercase">Previous</a>
+        {% else %}
+            <div class="flex-1 py-3 border border-neutral-800 bg-neutral-900/20 text-neutral-700 text-xs tracking-widest text-center font-bold uppercase cursor-not-allowed">Previous</div>
+        {% endif %}
+
+        <span class="text-[10px] text-neutral-500 tracking-widest font-bold">PAGE {{ page + 1 }}</span>
+
+        {% if has_next %}
+            <a href="/admin/audit?page={{ page + 1 }}" class="flex-1 text-center py-3 border border-neutral-700 hover:border-white hover:bg-white hover:text-black text-xs tracking-widest transition-all font-bold text-white uppercase">Next</a>
+        {% else %}
+            <div class="flex-1 py-3 border border-neutral-800 bg-neutral-900/20 text-neutral-700 text-xs tracking-widest text-center font-bold uppercase cursor-not-allowed">Next</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

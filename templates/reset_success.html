@@ -1,0 +1,16 @@
+<!-- templates/reset_success.html -->
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="border border-neutral-800 p-8 w-full max-w-md bg-neutral-900/50 text-center">
+    <h2 class="text-2xl font-bold mb-6 tracking-widest text-green-500">RECOVERY SUCCESSFUL</h2>
+    <p class="text-neutral-400 mb-4 text-sm uppercase">Your password has been reset. A new recovery code has been generated.</p>
+
+    <div class="mb-8">
+        <p class="text-xs text-neutral-600 mb-1">NEW RECOVERY CODE</p>
+        <p class="text-lg font-bold text-red-500 tracking-widest">{{ new_recovery_code }}</p>
+    </div>
+
+    <a href="/login" class="px-6 py-2 border border-neutral-700 hover:border-neutral-500 text-sm tracking-widest transition-colors inline-block">PROCEED TO LOGIN</a>
+</div>
+{% endblock %}

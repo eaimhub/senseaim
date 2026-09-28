@@ -1,0 +1,14 @@
+<!-- templates/reset.html -->
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="border border-neutral-800 p-8 w-full max-w-md bg-neutral-900/50">
+    <h2 class="text-2xl font-bold mb-6 tracking-widest text-white text-center">RECOVER ACCESS</h2>
+    <form action="/reset" method="POST" class="flex flex-col gap-4">
+        <input type="text" name="login" placeholder="LOGIN" required class="bg-black border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-neutral-500 transition-colors uppercase font-mono">
+        <input type="text" name="recovery_code" placeholder="24-CHAR RECOVERY CODE" required class="bg-black border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-neutral-500 transition-colors font-mono">
+        <input type="password" name="new_password" placeholder="NEW PASSWORD" required class="bg-black border border-neutral-700 p-3 text-sm text-white focus:outline-none focus:border-neutral-500 transition-colors font-mono">
+        <button type="submit" class="mt-4 px-6 py-3 border border-neutral-700 hover:border-neutral-500 text-sm tracking-widest transition-colors font-bold">UPDATE CREDENTIALS</button>
+    </form>
+</div>
+{% endblock %}
